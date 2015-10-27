@@ -1,0 +1,46 @@
+#https://ciciui.com/package/34879
+#!/usr/bin/env python
+import nmap                        # import nmap.py module
+nm = nmap.PortScanner()             # instantiate nmap.PortScanner object
+#nm.scan('192.168.64.0/24', '80')      # scan host 10.0.3.101, ports from 22 to 443 / 22,80
+#nm.scan('192.168.64.0', '445', arguments='--script="C:/Program Files (x86)/Nmap/scripts/http-slowloris.nse"')
+nm.scan('192.168.64.128', arguments='-ssV --script=http-enum.nse')
+# 경로는 \\ 또는 / 를 사용
+# -p 80, 8080 으로 포트 지정 가능, 포트 지정을 하지 않으면 가능한 포트 모두 검색
+nm.command_line()                  # get command line used for the scan : nmap -oX - -p 22-443 10.0.3.101
+nm.scaninfo()
+nm.all_hosts()
+
+#hosts_list = [(x, nm[x]['status']['state']) for x in nm.all_hosts()]
+#print('hosts_list : ' % hosts_list)
+#for host, status in hosts_list:
+#    print('{0}:{1}'.format(host, status))
+
+print(nm.get_nmap_last_output()) # xml 로 출력
+
+print('Request ----------------------------------------------------')
+print('Scan Hosts : %s' % nm.all_hosts())
+print('Command Line : %s' % nm.command_line())
+print('ScanInfo : %s' % nm.scaninfo())
+print('\n')
+for host in nm.all_hosts():
+    print('Result ----------------------------------------------------')
+    print('Host : %s (%s)' % (host, nm[host].hostname()))
+    print('State : %s' % nm[host].state())
+    print('\n')
+
+    for proto in nm[host].all_protocols():
+        print('----------------------------------------------------')
+        print('Protocol : %s' % proto)
+
+        lport = nm[host][proto].keys()
+        #lport.sort()
+        for port in lport:
+            if 'script' in nm[host][proto][port].keys():
+                print('PORT : %s\t | STATE : %s\t | REASON : %s\t | SERVICE : %s\t | PRODUCT : %s\t | VERSION : %s' % (port, nm[host][proto][port]['state'], nm[host][proto][port]['reason'], nm[host][proto][port]['name'], nm[host][proto][port]['product'], nm[host][proto][port]['version']))
+                lscript = nm[host][proto][port]['script']['http-enum']
+                print('SERVICE : %s' % lscript)
+                #print(nm[host][proto][port].keys())
+                #print(nm[host][proto][port].items())
+            else:
+                print('PORT : %s\t | STATE : %s\t | REASON : %s\t | SERVICE : %s\t | PRODUCT : %s\t | VERSION : %s' % (port, nm[host][proto][port]['state'], nm[host][proto][port]['reason'], nm[host][proto][port]['name'], nm[host][proto][port]['product'], nm[host][proto][port]['version']))
